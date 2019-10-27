@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8' />
+  <meta name='viewport' content='width=device-width, initial-scale=1' />
+  <title>電子ペーパー診察券</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mini.css/3.0.1/mini-default.min.css">
+</head>
+<body>
+
+<script src='https://unpkg.com/mithril/mithril.js'></script>
+<script src='https://unpkg.com/underscore/underscore.js'></script>
+<script>
+////////////////////////////////////////////////////////////////////////////////
+// Utility
+////////////////////////////////////////////////////////////////////////////////
+'use strict';
+
+
+////////////////////////////////////////////////////////////////////////////////
+// Model
+////////////////////////////////////////////////////////////////////////////////
+
+var Position = {
+  initialize: () => {
+  },
+  get: () => {
+    if (!navigator.geolocation) {
+      // Geolocation APIに対応していない
+      alert("この端末では位置情報が取得できません");
+      return;
+    }
+    return navigator.geolocation.getCurrentPosition(Position.success, Position.error);
+  },
+  success: (pos) => {
+    alert("緯度:"+pos.coords.latitude+",経度"+pos.coords.longitude);
+    console.log(pos);
+    return pos;
+  },
+  eroror: (err) => {
+    switch(err.code) {
+      case 1: //PERMISSION_DENIED
+        alert("位置情報の利用が許可されていません");
+        break;
+      case 2: //POSITION_UNAVAILABLE
+        alert("現在位置が取得できませんでした");
+        break;
+      case 3: //TIMEOUT
+        alert("タイムアウトになりました");
+        break;
+      default:
+        alert("その他のエラー(エラーコード:"+error.code+")");
+        break;
+    }
+  },
+  load: () => {
+    // ToDo: 実装する
+  },
+  save: () => {
+    // ToDo: 実装する
+  },
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// ViewComponent
+////////////////////////////////////////////////////////////////////////////////
+var HeaderComponent = {
+  view: (vnode) => {
+    return m('header', [
+      m('a.logo[href=#!/]', {oncreate: m.route.link}, '電子ペーパー診察券'),
+      m('a.button[href=#!/import]', {oncreate: m.route.link}, '追加'),
+    ])
+  },
+}
+
+var TopComponent = {
+  view: (vnode) => {
+    return [
+      m(HeaderComponent),
+      m(TopMainComponent),
+    ]
+  }
+}
+
+var ImportComponent = {
+  view: (vnode) => {
+    return [
+      m(HeaderComponent),
+      m(ImportMainComponent),
+    ]
+  }
+}
+
+var TopMainComponent = {
+  view: (vnode) => {
+    let pos;
+    return [
+      m('main', [
+        m('button.button[type=button]', {onclick:Position.get}, '診察券提示'),
+        m('div.card', [
+          m('div.section',[
+            m('h2', '診察券1'),
+            m('img.section.media[src=https://placehold.it/400x300]'),
+          ]),
+          m('div.section',[
+            m('h2', '診察券2'),
+            m('img.section.media[src=https://placehold.it/400x300]'),
+          ]),
+        ]),
+      ]),
+    ];
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Main
+////////////////////////////////////////////////////////////////////////////////
+
+const ROOT = document.body
+m.route(ROOT, '/', {
+  '/': TopComponent,
+  '/import': ImportComponent,
+})
+
+</script>
+</body>
+</html>
