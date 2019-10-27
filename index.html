@@ -17,12 +17,37 @@
 'use strict';
 
 
+var dummyItems = [{
+    name: 'つぼいセントラルクリニック',
+    address: '〒446-0057 愛知県安城市三河安城東町１丁目７−３',
+    tel: '0566-76-1720',
+    pos: {
+      latitude: 34.9649785,
+      longitude: 137.06438870,
+    },
+  },
+  {
+    name: 'いなほ歯科クリニック',
+    address: '〒211-0053 神奈川県川崎市中原区上小田中６丁目２３−２',
+    tel: '044-739-1740',
+    pos: {
+      latitude: 35.5807362,
+      longitude: 139.6412907,
+    },
+  },
+]
+
 ////////////////////////////////////////////////////////////////////////////////
 // Model
 ////////////////////////////////////////////////////////////////////////////////
 
 var Position = {
-  initialize: () => {
+  current: {
+    latitude: 0,
+    longitude: 0,
+  },
+  init: () => {
+    Position.get();
   },
   get: () => {
     if (!navigator.geolocation) {
@@ -30,12 +55,12 @@ var Position = {
       alert("この端末では位置情報が取得できません");
       return;
     }
-    return navigator.geolocation.getCurrentPosition(Position.success, Position.error);
+    navigator.geolocation.getCurrentPosition(Position.success, Position.error);
+    return Position.current;
   },
   success: (pos) => {
-    alert("緯度:"+pos.coords.latitude+",経度"+pos.coords.longitude);
     console.log(pos);
-    return pos;
+    Position.current = pos.coords;
   },
   eroror: (err) => {
     switch(err.code) {
@@ -59,6 +84,35 @@ var Position = {
   save: () => {
     // ToDo: 実装する
   },
+}
+
+var Card = {
+  name: '',
+  address: '',
+  tel: '',
+  pos: {
+    latitude: 0,
+    longitude: 0,
+  },
+}
+
+var Cards = {
+  items: [],
+  nearest: null,
+  init: () => {
+    Cards.items = dummyItems;
+    Cards.select(Position.current);
+  },
+  select: (pos) => {
+    Cards.items = _(Cards.items)
+      .chain()
+      .sort((card) => {
+        return Math.abs(pos.latitude - card.pos.latitude)
+          + Math.abs(pos.longitude - card.pos.longitude);
+      })
+      .value();
+    Cards.nearest = Cards.items[0];
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -92,20 +146,24 @@ var ImportComponent = {
 }
 
 var TopMainComponent = {
+  oninit: Cards.init,
   view: (vnode) => {
-    let pos;
     return [
       m('main', [
-        m('button.button[type=button]', {onclick:Position.get}, '診察券提示'),
+        m('button.button[type=button]', {onclick: Position.get}, '位置更新'),
         m('div.card', [
-          m('div.section',[
-            m('h2', '診察券1'),
-            m('img.section.media[src=https://placehold.it/400x300]'),
+          m('div.section', [
+            m('figure', [
+              m('figcaption', Cards.nearest.name),
+              m('img[src=https://placehold.it/400x50]', {alt: Cards.nearest.name}),
+            ]),
           ]),
-          m('div.section',[
-            m('h2', '診察券2'),
-            m('img.section.media[src=https://placehold.it/400x300]'),
-          ]),
+        ]),
+        m('hr'),
+        m('ul', [
+          _(Cards.items).map((card) => {
+            return m('li', card.name + ' : ' + card.pos.latitude + ', ' + card.pos.longitude);
+          }),
         ]),
       ]),
     ];
