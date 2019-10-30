@@ -56,7 +56,7 @@ var Position = {
       return;
     }
     navigator.geolocation.getCurrentPosition(Position.success, Position.error);
-    return Position.current;
+//    return Position.current;
   },
   success: (pos) => {
     console.log(pos);
@@ -150,7 +150,8 @@ var TopMainComponent = {
   view: (vnode) => {
     return [
       m('main', [
-        m('button.button[type=button]', {onclick: Position.get}, '位置更新'),
+        m('button.button[type=button]', {onclick: Position.get}, '現在位置'),
+        m('span', '緯度:' + Position.current.latitude + ', 経度:' + Position.current.longitude),
         m('div.card', [
           m('div.section', [
             m('figure', [
